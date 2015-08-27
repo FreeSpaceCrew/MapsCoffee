@@ -1,0 +1,31 @@
+<!doctype html>
+<head>
+    <title>Coffee Map</title>
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <style>
+        body {
+            margin: 0px;
+        }
+        #map {
+            width: 60%;
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([55.7516, 37.6187], 10);
+
+        L.tileLayer('http://a.tiles.maps.sputnik.ru/tiles/kmt2/{id}/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            id: 'mapbox.streets'
+        }).addTo(map);
+
+        L.marker([55.7516, 37.6187]).addTo(map)
+            .bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
+
+    </script>
+</body>
+
