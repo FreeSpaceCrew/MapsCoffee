@@ -18,7 +18,7 @@ object XML2CoffeePoint{
 //    Logger.debug(s" $node ")
 
     CoffeePoint(
-      (node \ "@id" text),
+      (node \ "@id").text,
       node.child.filter(tag => (tag \ "@k" text) == "name") \ "@v" text,
       (node \ "@lat" text).toDouble,
       (node \ "@lon" text).toDouble
@@ -51,15 +51,15 @@ class API @Inject() (ws: WSClient) extends Controller {
 
   }
 
-
+  // NB! Overpass API by some reason swapped South and North
   def makeBody(s: String, n: String, w: String, e: String): String =
-      s"""<bbox-query s="$s" n="$n" w="$w" e="$e"/>
+      s"""<bbox-query s="$n" n="$s" w="$w" e="$e"/>
          <query type="node">
             <item/>
             <has-kv k="amenity" v="cafe"/>
             <has-kv k="cuisine" v="coffee_shop"/>
          </query>
-         <print/>""";
+         <print/>"""
 
   def points(s: String, n: String, w: String, e: String) = Action.async {
 
