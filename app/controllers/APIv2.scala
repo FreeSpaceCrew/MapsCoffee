@@ -28,10 +28,28 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
   def mkElasticUrl = "http://" + current.configuration.getString("elasticHost").get + ":9200/map/coffee/_search"
 
   def mkBody(s: String, n: String, w: String, e: String) = s"""{
-    "query": {
-      "match_all" : {}
+  "query":{
+    "bool" : {
+        "must" : {
+            "match_all" : {}
+        },
+        "filter" : {
+            "geo_bounding_box" : {
+                "location" : {
+                    "top_left" : {
+                        "lat" : $n,
+                        "lon" : $w
+                    },
+                    "bottom_right" : {
+                        "lat" : $s,
+                        "lon" : $e
+                    }
+                }
+            }
+        }
     }
-  }"""
+  }
+}"""
 
   def formatJson(resp: String): List[CoffeePoint] =
     (Json.parse(resp) \ "hits" \ "hits").as[List[JsValue]]
@@ -47,7 +65,7 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
 
     val body = mkBody(s, n, w, e)
 
-//    Logger.debug(s" $body ")
+    Logger.debug(s" $body ")
 
     val futureResponse: Future[WSResponse] = request.post(body)
 
