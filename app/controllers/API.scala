@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import play.api.mvc._
 import play.api.libs.ws._
 
-case class CoffeePoint(id: String, name: String="no name", lat: Double = 0.0, lon: Double = 0.0)
+case class CoffeePoint(id: String, name: String="no name", lat: Double = 0.0, lon: Double = 0.0, openingHours: String = "")
 
 object XML2CoffeePoint{
 
@@ -40,7 +40,8 @@ class API @Inject() (ws: WSClient) extends Controller {
     (JsPath \ "id").write[String] and
     (JsPath \ "name").write[String] and
     (JsPath \ "lat").write[Double] and
-      (JsPath \ "lon").write[Double]
+      (JsPath \ "lon").write[Double] and
+      (JsPath \ "opening_hours").write[String]
     )(unlift(CoffeePoint.unapply))
 
   def xml2points(s: String): List[CoffeePoint] = {

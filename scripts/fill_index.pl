@@ -13,8 +13,8 @@ use XML::Simple;
 my $ua = Mojo::UserAgent->new;
 my $xs = XML::Simple->new;
 
-my $n = $ARGV[0] || 55.225368;
-my $s = $ARGV[1] || 56.103704;
+my $n = $ARGV[0] || 56.103704;
+my $s = $ARGV[1] || 55.225368;
 my $e = $ARGV[2] || 38.106079;
 my $w = $ARGV[3] || 37.117309;
 
@@ -41,27 +41,30 @@ foreach my $id (%{$xs->XMLin($xml)->{node}}) {
     my $name    = get_tag('name:ru', @$tags) || get_tag('name', @$tags);
     my $lat     = $xs->XMLin($xml)->{node}{$id}{lat};
     my $lon     = $xs->XMLin($xml)->{node}{$id}{lon};
+    my $hours   = get_tag('opening_hours', @$tags);
 
-    if($name && $lat && $lon) {
+    if($name && $lat && $lon && $hours) {
         #say $name;
         #say $lat;
         #say $lon;
 
         my $json = "{
             \"name\": \"$name\",
+            \"opening_hours\": \"$hours\",
             \"location\" : {
                 \"lat\": $lat,
                 \"lon\": $lon
             }
         }";
 
-#say Dumper $json;
+# say Dumper $json;
 
         my $tx = $ua->put("http://localhost:9200/map/coffee/$id" => {Accept => '*/*'} => $json);
         #say Dumper $tx->res->body;
+        # last;
     }
 
-    #last;
+    
 }
 
 sub get_tag {

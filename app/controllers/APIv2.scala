@@ -18,7 +18,8 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
     (JsPath \ "id").write[String] and
       (JsPath \ "name").write[String] and
       (JsPath \ "lat").write[Double] and
-      (JsPath \ "lon").write[Double]
+      (JsPath \ "lon").write[Double] and
+      (JsPath \ "opening_hours").write[String]
     )(unlift(CoffeePoint.unapply))
 
   def index = Action {
@@ -34,8 +35,8 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
   }"""
 
   def mkBody(s: String, n: String, w: String, e: String) = s"""{
-  "size" : 1000,
-  "query":{
+ "size" : 1000,
+ "query":{
     "bool" : {
         "must" : {
             "match_all" : {}
@@ -65,7 +66,8 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
         (i \ "_id" ).as[String],
         (i \ "_source" \ "name").as[String],
         (i \ "_source" \ "location" \ "lat").as[Double],
-        (i \ "_source" \ "location" \ "lon").as[Double]
+        (i \ "_source" \ "location" \ "lon").as[Double],
+        (i \ "_source" \ "opening_hours").as[String]
       ) }
   }
 
