@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use utf8;
 use feature 'say';
 
 use Mojo::UserAgent;
@@ -12,7 +13,14 @@ use XML::Simple;
 my $ua = Mojo::UserAgent->new;
 my $xs = XML::Simple->new;
 
-my $body = "<bbox-query s=\"55.72\" n=\"55.85\" w=\"37.41\" e=\"37.82\"/>
+my $n = $ARGV[0] || 55.225368;
+my $s = $ARGV[1] || 56.103704;
+my $e = $ARGV[2] || 38.106079;
+my $w = $ARGV[3] || 37.117309;
+
+
+# 54.831281&s=56.585708&e=38.609619&w=36.63208
+my $body = "<bbox-query s=\"$s\" n=\"$n\" w=\"$w\" e=\"$e\"/>
          <query type=\"node\">
             <item/>
             <has-kv k=\"amenity\" v=\"cafe\"/>
@@ -20,14 +28,14 @@ my $body = "<bbox-query s=\"55.72\" n=\"55.85\" w=\"37.41\" e=\"37.82\"/>
          </query>
          <print/>";
 
+say $body;
 
 my $xml = $ua->post("http://overpass-api.de/api/interpreter" => {Accept => '*/*'} => $body)->res->body;
 
 say "found: ".scalar(keys %{$xs->XMLin($xml)->{node}});
 
 foreach my $id (%{$xs->XMLin($xml)->{node}}) {
-    print ".";
-    # say $id;
+    #say $id;
 
     my $tags    = $xs->XMLin($xml)->{node}{$id}{tag};
     my $name    = get_tag('name:ru', @$tags) || get_tag('name', @$tags);
@@ -35,23 +43,25 @@ foreach my $id (%{$xs->XMLin($xml)->{node}}) {
     my $lon     = $xs->XMLin($xml)->{node}{$id}{lon};
 
     if($name && $lat && $lon) {
-        # say $name;
-        # say $lat;
-        # say $lon;
+        #say $name;
+        #say $lat;
+        #say $lon;
 
-        my $tx = $ua->put("http://localhost:9200/map/coffee/$id" => {Accept => '*/*'} => json => { 
-            "name" => $name,
-            "location" => {
-                "lat" => $lat, 
-                "lon" => $lon
-                }
-            });
+        my $json = "{
+            \"name\": \"$name\",
+            \"location\" : {
+                \"lat\": $lat,
+                \"lon\": $lon
+            }
+        }";
+
+#say Dumper $json;
+
+        my $tx = $ua->put("http://localhost:9200/map/coffee/$id" => {Accept => '*/*'} => $json);
+        #say Dumper $tx->res->body;
     }
 
-    # say Dumper $tx;
-
-    # say $xs->XMLin($xml)->{node}{$id}{tag}
-    # last;
+    #last;
 }
 
 sub get_tag {

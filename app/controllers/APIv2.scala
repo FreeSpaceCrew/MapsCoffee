@@ -34,6 +34,7 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
   }"""
 
   def mkBody(s: String, n: String, w: String, e: String) = s"""{
+  "size" : 1000,
   "query":{
     "bool" : {
         "must" : {
@@ -58,7 +59,7 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
 }"""
 
   def formatJson(resp: String): List[CoffeePoint] = {
-    Logger.debug(resp)
+    //Logger.debug(resp)
     (Json.parse(resp) \ "hits" \ "hits").as[List[JsValue]]
       .map{ i => CoffeePoint(
         (i \ "_id" ).as[String],
@@ -74,7 +75,7 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
     val body = mkBody(s, n, w, e)
     
     Logger.debug(s" url: /api/v2/points?n=$n&s=$s&e=$e&w=$w")
-    Logger.debug(s" $body ")
+    //Logger.debug(s" $body ")
 
     val futureResponse: Future[WSResponse] = request.post(body)
 
