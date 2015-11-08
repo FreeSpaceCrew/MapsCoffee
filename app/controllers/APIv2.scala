@@ -27,6 +27,12 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
 
   def mkElasticUrl = "http://" + current.configuration.getString("elasticHost").get + ":9200/map/coffee/_search"
 
+  def mkBody2(s: String, n: String, w: String, e: String) = s"""{
+    "query": {
+      "match_all" : {}
+    }
+  }"""
+
   def mkBody(s: String, n: String, w: String, e: String) = s"""{
   "query":{
     "bool" : {
@@ -37,11 +43,11 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
             "geo_bounding_box" : {
                 "location" : {
                     "top_left" : {
-                        "lat" : $n,
+                        "lat" : $s,
                         "lon" : $w
                     },
                     "bottom_right" : {
-                        "lat" : $s,
+                        "lat" : $n,
                         "lon" : $e
                     }
                 }
@@ -51,7 +57,8 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
   }
 }"""
 
-  def formatJson(resp: String): List[CoffeePoint] =
+  def formatJson(resp: String): List[CoffeePoint] = {
+    Logger.debug(resp)
     (Json.parse(resp) \ "hits" \ "hits").as[List[JsValue]]
       .map{ i => CoffeePoint(
         (i \ "_id" ).as[String],
@@ -59,13 +66,15 @@ class APIv2 @Inject() (ws: WSClient) extends Controller {
         (i \ "_source" \ "location" \ "lat").as[Double],
         (i \ "_source" \ "location" \ "lon").as[Double]
       ) }
+  }
 
   def points(s: String, n: String, w: String, e: String) = Action.async {
     val request: WSRequest = ws.url(mkElasticUrl)
 
     val body = mkBody(s, n, w, e)
-
-   Logger.debug(s" $body ")
+    
+    Logger.debug(s" url: /api/v2/points?n=$n&s=$s&e=$e&w=$w")
+    Logger.debug(s" $body ")
 
     val futureResponse: Future[WSResponse] = request.post(body)
 
