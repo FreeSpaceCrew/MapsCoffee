@@ -15,7 +15,7 @@ a proxy server for application CoffeeMap
   * e - east bound of user screen
   * w - west bound of user screen
 
-
+```
   (n,e)
   +-------------------------+
   |                         |
@@ -30,6 +30,7 @@ a proxy server for application CoffeeMap
   |                         |
   +-------------------------+
                         (s,w)
+```
 
 ## What does server do?
 
