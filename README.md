@@ -44,6 +44,7 @@ a proxy server for application CoffeeMap
 
 #### Overpass API body:
 
+```
 <bbox-query s="$n" n="$s" w="$w" e="$e"/>     // bbox 
 <query type="node">
 <item/>
@@ -51,7 +52,7 @@ a proxy server for application CoffeeMap
 <has-kv k="cuisine" v="coffee_shop"/>
 </query>
 <print/>
-
+```
 
 ### v2
 * takes GET args
@@ -62,7 +63,7 @@ a proxy server for application CoffeeMap
 * returns it to requester
 
 #### Elastic request body:
-
+```
 {
  "size" : 1000,                          // number of documents (points)
  "query":{
@@ -87,8 +88,10 @@ a proxy server for application CoffeeMap
     }
   }
 }
+```
 
+```
 ./scripts/fill_index.pl - elastic index filler script 
-
+```
 
 
