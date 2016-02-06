@@ -1,14 +1,14 @@
 # Maps Coffee
 
-a proxy server for application CoffeeMap
+proxy server for application CoffeeMap
 
 ## Routing 
-
+```
 /               - some leaflat app (it might be web-version)
 /api            - just info message (need to add info about API using)
 /api/points     - retrieving points directly via overpass API
 /api/v2/points  - retrieving points from elastic index (API the same as /api/points)
-
+```
   GET args:
   * n - north bound of user screen
   * s - south bound of user screen
