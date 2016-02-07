@@ -129,13 +129,13 @@ GET                                        |         |     JSON request   |     
 ### Index filling
 
 ```
-./scripts/fill_index.pl - perl script for filling Elasti Search index
+./scripts/fill_index.pl - perl script for filling Elastic Search index
                           requires perl 5.10, Mojolicious, XML::Simple 
 
 ```
 
-install requirements:
+install requirements (need root or sudo):
 ```
-cpan install Mojolicious, XML::Simple
+cpan install Mojolicious XML::Simple
 ```
 
