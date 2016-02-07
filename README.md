@@ -1,6 +1,12 @@
 # Maps Coffee
 
-proxy server for application CoffeeMap
+API proxy server for application CoffeeMap
+
+## Requirements
+
+* play framework 2.4.x
+* ElasticSearch 2.0.0
+
 
 ## Routing 
 ```
@@ -34,7 +40,18 @@ proxy server for application CoffeeMap
 
 ## What does server do?
 
-## v1
+## v1 (slow, but always actual data)
+
+```
+                                           +---------+                    +--------------+
+GET                                        |         |     XML request    |              |
+/api/v2/points?n=...&w=...&s=...&e=...  -> |         |    (sample below)  |              |
+                                           |  Proxy  |  ----------------> | Overpass API |
+              [ { JSON Response } ]     <- |  server |  <---------------- |              |
+                                           |         |      XML response  |              |
+                                           +---------+                    +--------------+
+```
+
 * takes GET args
 * composes XML document according to overpas API
 * makes request to overpass API
@@ -54,7 +71,26 @@ proxy server for application CoffeeMap
 <print/>
 ```
 
-### v2
+### v2 (fast, but need to refresh data)
+
+```
+                                           +---------+                    +----------+
+GET                                        |         |     JSON request   |          |
+/api/v2/points?n=...&w=...&s=...&e=...  -> |         |    (sample below)  |          |
+                                           |  Proxy  |  ----------------> |  Elastic |
+                 [ { JSON Response } ]  <- |  server |  <---------------- |  Search  |
+                                           |         |   JSON Response    |          |
+                                           +---------+                    +----------+
+                                                                                ^
+                                                                                |
+                                                                                |
+                                                                     +-------------------------+    +--------------+
+                                                                     |                         |    |              |
+                                                                     | ./scripts/fill_index.pl | -> | Overpass API |
+                                                                     |                         | <- |              |
+                                                                     +~~~~~~~~~~~~~~~~~~~~~~~~~+    +--------------+
+```
+
 * takes GET args
 * composes JSON document according to ElasticSearch DSL
 * makes request to ElasticSearch service               
@@ -91,7 +127,15 @@ proxy server for application CoffeeMap
 ```
 
 ```
-./scripts/fill_index.pl - elastic index filler script 
+./scripts/fill_index.pl - perl script for filling Elasti Search index
+                          requires perl 5.10, Mojolicious, XML::Simple 
+
 ```
+
+install requirements:
+```
+cpan install Mojolicious, XML::Simple
+```
+
 
 
