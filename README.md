@@ -126,6 +126,8 @@ GET                                        |         |     JSON request   |     
 }
 ```
 
+### Index filling
+
 ```
 ./scripts/fill_index.pl - perl script for filling Elasti Search index
                           requires perl 5.10, Mojolicious, XML::Simple 
