@@ -1,13 +1,11 @@
 package controllers;
 
-import classes.BoundingBox;
 import play.libs.F;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.libs.ws.WSResponse;
 import play.mvc.Controller;
 import play.mvc.Result;
-import views.html.index;
 
 import javax.inject.Inject;
 
@@ -22,13 +20,7 @@ public class API extends Controller {
 
         WSRequest request = ws.url(ELASTIC_URL);
         F.Promise<WSResponse> responsePromise = request.post(getRequestBody(s, w, n, e));
-
-
-        BoundingBox boundingBox = new BoundingBox(s, w, n, e);
-        F.Promise<BoundingBox> promise = F.Promise.promise(() -> boundingBox);
-
-        return responsePromise.map(response -> ok(response.asJson()));
-//        return promise.map(box -> ok(index.render("S value is " + s + " N value is " + n + " W:"+ w + "E: "+ e)));
+        return responsePromise.map(response -> ok(getRequestBody(s, w, n, e)));
     }
 
     private String getRequestBody(String s, String w, String n, String e) {
@@ -37,10 +29,10 @@ public class API extends Controller {
                         " \"query\":{\n" +
                         "    \"bool\" : {\n" +
                         "        \"must\" : {\n" +
-                        "            \"match_all\" : {}" +             // search query (empty match all documents)\n
+                        "            \"match_all\" : {}\n" +             // search query (empty match all documents)\n
                         "         },\n" +
                         "        \"filter\" : {\n" +
-                        "            \"geo_bounding_box\" : {" +       // bbox (s,w) -> (n,e)\n"
+                        "            \"geo_bounding_box\" : {\n" +       // bbox (s,w) -> (n,e)\n"
                         "                \"location\" : {\n" +
                         "                    \"top_left\" : {\n" +
                         "                        \"lat\" : %s,\n" + //s
@@ -57,6 +49,14 @@ public class API extends Controller {
                         "  }\n" +
                         "}",
                 s, w, n, e);
+    }
+
+    public Result addPoint(String json) {
+
+        WSRequest request = ws.url(ELASTIC_URL);
+        F.Promise<WSResponse> responsePromise = request.put(json);
+
+        return ok();
     }
 
 
