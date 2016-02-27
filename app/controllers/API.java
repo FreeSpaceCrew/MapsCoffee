@@ -1,9 +1,14 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.libs.F;
+import play.libs.Json;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.libs.ws.WSResponse;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
@@ -15,15 +20,27 @@ public class API extends Controller {
     WSClient ws;
 
     private static final String ELASTIC_URL = "http://localhost:9200/map/coffee/_search";
+    private static final String ELASTIC_ADD_POINT_URL = "http://localhost:9200/map/coffee/";
 
-    public F.Promise<Result> points(String s, String n, String w, String e) {
-
+    public F.Promise<Result> points(String n, String s, String w, String e) {
         WSRequest request = ws.url(ELASTIC_URL);
-        F.Promise<WSResponse> responsePromise = request.post(getRequestBody(s, w, n, e));
-        return responsePromise.map(response -> ok(getRequestBody(s, w, n, e)));
+        F.Promise<WSResponse> responsePromise = request.post(getRequestBody(n, s, w, e));
+        return responsePromise.map(response -> ok(getJsonPoints(response.asJson())));
     }
 
-    private String getRequestBody(String s, String w, String n, String e) {
+    private JsonNode getJsonPoints(JsonNode response) {
+        ObjectNode result = Json.newObject();
+        result.put("result", "ok");
+        ArrayNode responseArray = (ArrayNode) response.get("hits").get("hits");
+        ArrayNode pointsArray = Json.newArray();
+        for (JsonNode item : responseArray) {
+            pointsArray.add(item.get("_source"));
+        }
+        result.putArray("points").addAll(pointsArray);
+        return result;
+    }
+
+    private String getRequestBody(String n, String s, String w, String e) {
         return String.format("{\n" +
                         " \"size\" : 1000," +   // number of documents (points)\n
                         " \"query\":{\n" +
@@ -35,11 +52,11 @@ public class API extends Controller {
                         "            \"geo_bounding_box\" : {\n" +       // bbox (s,w) -> (n,e)\n"
                         "                \"location\" : {\n" +
                         "                    \"top_left\" : {\n" +
-                        "                        \"lat\" : %s,\n" + //s
+                        "                        \"lat\" : %s,\n" + //n
                         "                        \"lon\" : %s\n" +  //w
                         "                    },\n" +
                         "                    \"bottom_right\" : {\n" +
-                        "                        \"lat\" : %s,\n" + //n
+                        "                        \"lat\" : %s,\n" + //s
                         "                        \"lon\" : %s\n" + //e
                         "                    }\n" +
                         "                }\n" +
@@ -48,18 +65,35 @@ public class API extends Controller {
                         "    }\n" +
                         "  }\n" +
                         "}",
-                s, w, n, e);
+                n, w, s, e);
     }
 
-    public Result addPoint(String json) {
+    @BodyParser.Of(BodyParser.Json.class)
+    public F.Promise<Result> addPoint() {
 
-        WSRequest request = ws.url(ELASTIC_URL);
-        F.Promise<WSResponse> responsePromise = request.put(json);
+        JsonNode json = request().body().asJson();
+        String name = json.findPath("name").textValue();
+        double latitude = json.get("location").get("lat").asDouble();
+        double longitude = json.get("location").get("lon").asDouble();
 
-        return ok();
+        ObjectNode newPoint = Json.newObject();
+        newPoint.put("name", name);
+        newPoint.put("opening_hours", "");
+        newPoint.putObject("location")
+                .put("lat", latitude)
+                .put("lon", longitude);
+        play.Logger.debug(String.format("Name: %s, lat: %f, lon: %f; \n Json: %s", name, latitude, longitude, newPoint));
+
+        WSRequest request = ws.url(ELASTIC_ADD_POINT_URL).setContentType("application/json");
+
+        F.Promise<WSResponse> responsePromise = request.post(newPoint.toString());
+
+//        return responsePromise.map(response -> ok(response.getStatusText()));
+        return responsePromise.map(response -> {
+            String result = response.getBody();
+            play.Logger.debug(result);
+            return ok(response.asJson());
+        });
     }
-
-
-
 
 }
