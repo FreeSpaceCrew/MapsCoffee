@@ -11,6 +11,7 @@ import play.libs.ws.WSResponse;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Results;
 
 import javax.inject.Inject;
 
@@ -21,6 +22,7 @@ public class API extends Controller {
 
     private static final String ELASTIC_URL = "http://localhost:9200/map/coffee/_search";
     private static final String ELASTIC_ADD_POINT_URL = "http://localhost:9200/map/coffee/";
+    private static final String API_VERSION = "1.0";
 
     public F.Promise<Result> points(String n, String s, String w, String e) {
         WSRequest request = ws.url(ELASTIC_URL);
@@ -88,12 +90,19 @@ public class API extends Controller {
 
         F.Promise<WSResponse> responsePromise = request.post(newPoint.toString());
 
-//        return responsePromise.map(response -> ok(response.getStatusText()));
         return responsePromise.map(response -> {
             String result = response.getBody();
             play.Logger.debug(result);
             return ok(response.asJson());
         });
+    }
+
+    public F.Promise<Result> status() {
+        ObjectNode status = Json.newObject();
+        status.put("status", "ok");
+        status.put("version", API_VERSION);
+        F.Promise<JsonNode> responsePromise = F.Promise.promise(() -> status);
+        return responsePromise.map(Results::ok);
     }
 
 }
